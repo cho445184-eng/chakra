@@ -141,46 +141,60 @@ void _DependancyLayer::_helper_allocate_bucket(NodeId node_id) {
 void DependancyResolver::add_node(const ChakraNode& node) {
   NodeId node_id = node.id();
   std::unordered_set<NodeId> parents, enabled_parents;
-  for (auto& parent : node.data_deps()) {
-    if (this->enable_data_deps)
-      enabled_parents.insert(parent);
-    parents.insert(parent);
+  // hotfix: instead of ignroe, complete dont handle data dep if not enabled
+  if ((SOFT_SANITY_CHECK && this->enable_data_deps) || (!SOFT_SANITY_CHECK)) {
+    for (auto& parent : node.data_deps()) {
+      if (this->enable_data_deps)
+        enabled_parents.insert(parent);
+      parents.insert(parent);
+    }
+    this->data_dependancy.add_node(node_id, parents);
+    parents.clear();
   }
-  this->data_dependancy.add_node(node_id, parents);
-  parents.clear();
 
-  for (auto& parent : node.ctrl_deps()) {
-    if (this->enable_ctrl_deps)
-      enabled_parents.insert(parent);
-    parents.insert(parent);
+  // hotfix: instead of ignroe, complete dont handle data dep if not enabled
+  if ((SOFT_SANITY_CHECK && this->enable_ctrl_deps) || (!SOFT_SANITY_CHECK)) {
+    for (auto& parent : node.ctrl_deps()) {
+      if (this->enable_ctrl_deps)
+        enabled_parents.insert(parent);
+      parents.insert(parent);
+    }
+    this->ctrl_dependancy.add_node(node_id, parents);
+    parents.clear();
   }
-  this->ctrl_dependancy.add_node(node_id, parents);
-  parents.clear();
 
   this->enabled_dependancy.add_node(node_id, enabled_parents);
 }
 
 void DependancyResolver::take_node(const NodeId& node) {
-  this->data_dependancy.take_node(node);
-  this->ctrl_dependancy.take_node(node);
+  if ((SOFT_SANITY_CHECK && this->enable_data_deps) || (!SOFT_SANITY_CHECK))
+    this->data_dependancy.take_node(node);
+  if ((SOFT_SANITY_CHECK && this->enable_ctrl_deps) || (!SOFT_SANITY_CHECK))
+    this->ctrl_dependancy.take_node(node);
   this->enabled_dependancy.take_node(node);
 }
 
 void DependancyResolver::push_back_node(const NodeId& node) {
-  this->data_dependancy.push_back_node(node);
-  this->ctrl_dependancy.push_back_node(node);
+  if ((SOFT_SANITY_CHECK && this->enable_data_deps) || (!SOFT_SANITY_CHECK))
+    this->data_dependancy.push_back_node(node);
+  if ((SOFT_SANITY_CHECK && this->enable_ctrl_deps) || (!SOFT_SANITY_CHECK))
+    this->ctrl_dependancy.push_back_node(node);
   this->enabled_dependancy.push_back_node(node);
 }
 
 void DependancyResolver::finish_node(const NodeId& node) {
-  this->data_dependancy.finish_node(node);
-  this->ctrl_dependancy.finish_node(node);
+  if ((SOFT_SANITY_CHECK && this->enable_data_deps) || (!SOFT_SANITY_CHECK))
+    this->data_dependancy.finish_node(node);
+  if ((SOFT_SANITY_CHECK && this->enable_ctrl_deps) || (!SOFT_SANITY_CHECK))
+    this->ctrl_dependancy.finish_node(node);
   this->enabled_dependancy.finish_node(node);
 }
 
 void DependancyResolver::resolve_dependancy_free_nodes() {
-  this->data_dependancy.resolve_dependancy_free_nodes();
-  this->ctrl_dependancy.resolve_dependancy_free_nodes();
+  if ((SOFT_SANITY_CHECK && this->enable_data_deps) || (!SOFT_SANITY_CHECK))
+    this->data_dependancy.resolve_dependancy_free_nodes();
+  if ((SOFT_SANITY_CHECK && this->enable_ctrl_deps) || (!SOFT_SANITY_CHECK))
+    this->ctrl_dependancy.resolve_dependancy_free_nodes();
   this->enabled_dependancy.resolve_dependancy_free_nodes();
 }
 
