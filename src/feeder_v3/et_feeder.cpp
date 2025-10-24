@@ -93,27 +93,37 @@ std::shared_ptr<const ChakraNode> ETFeeder::get_raw_chakra_node(
 }
 
 void ETFeeder::graph_sanity_check() {
-  // check if all nodes in dependancy graph exists.
-  const auto& data_dep = this->dependancy_resolver.get_data_dependancy();
-  const auto& ctrl_dep = this->dependancy_resolver.get_ctrl_dependancy();
-  const auto& enabled_dep = this->dependancy_resolver.get_enabled_dependancy();
-  for (const auto& node : data_dep.get_dependancy_free_nodes()) {
-    if (this->index_map.find(node) == this->index_map.end())
-      throw std::runtime_error(
-          "Node " + std::to_string(node) +
-          " in data_dep graph, but not found in index, file might be corrupted");
-  }
-  for (const auto& node : ctrl_dep.get_dependancy_free_nodes()) {
-    if (this->index_map.find(node) == this->index_map.end())
-      throw std::runtime_error(
-          "Node " + std::to_string(node) +
-          " in ctrl_dep graph, but not found in index, file might be corrupted");
-  }
-  for (const auto& node : enabled_dep.get_dependancy_free_nodes()) {
-    if (this->index_map.find(node) == this->index_map.end())
-      throw std::runtime_error(
-          "Node " + std::to_string(node) +
-          " in all_dep graph, but not found in index, file might be corrupted");
+  try {
+    // check if all nodes in dependancy graph exists.
+    const auto& data_dep = this->dependancy_resolver.get_data_dependancy();
+    const auto& ctrl_dep = this->dependancy_resolver.get_ctrl_dependancy();
+    const auto& enabled_dep =
+        this->dependancy_resolver.get_enabled_dependancy();
+    for (const auto& node : data_dep.get_dependancy_free_nodes()) {
+      if (this->index_map.find(node) == this->index_map.end())
+        throw std::runtime_error(
+            "Node " + std::to_string(node) +
+            " in data_dep graph, but not found in index, file might be corrupted");
+    }
+    for (const auto& node : ctrl_dep.get_dependancy_free_nodes()) {
+      if (this->index_map.find(node) == this->index_map.end())
+        throw std::runtime_error(
+            "Node " + std::to_string(node) +
+            " in ctrl_dep graph, but not found in index, file might be corrupted");
+    }
+    for (const auto& node : enabled_dep.get_dependancy_free_nodes()) {
+      if (this->index_map.find(node) == this->index_map.end())
+        throw std::runtime_error(
+            "Node " + std::to_string(node) +
+            " in all_dep graph, but not found in index, file might be corrupted");
+    }
+  } catch (const std::exception& e) {
+    if (SOFT_SANITY_CHECK) {
+      std::cerr << "Warning: Graph sanity check failed: " << e.what()
+                << std::endl;
+    } else {
+      throw;
+    }
   }
 }
 

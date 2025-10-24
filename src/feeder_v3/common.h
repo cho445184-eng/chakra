@@ -24,6 +24,8 @@ constexpr static bool RESOLVE_CTRL_DEPS = true;
 
 constexpr static size_t DEFAULT_PROTOBUF_BUFFER_SIZE = 16384;
 
+constexpr static bool SOFT_SANITY_CHECK = true;
+
 } // namespace FeederV3
 } // namespace Chakra
 
